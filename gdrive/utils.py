@@ -5,14 +5,19 @@ from tqdm import tqdm
 import time
 import re
 class Drive:
-    def __init__(self,creds) -> None:
+    def __init__(self,drive_model) -> None:
+        self.drive_model = drive_model
+        creds = drive_model.json
         self._creds = json.loads(creds)
         self.session = requests.session()
-        self.expired = 0
-        self.access_token = ""
+    def get_availabe_space(self):
+        url = "https://www.googleapis.com/drive/v3/about?fields=storageQuota"
+        response = self.session.get(url,headers=self._get_headers())
+        available = response.json["storageQuota"]
+        return round((available["limit"] - available["usage"])/(1024 ** 3),2)
     def get_access_token(self):
-        if self.expired > time.time():
-            return self.access_token
+        if self._creds.get("expires_in") and self._creds["expires_in"] > time.time():
+            return self._creds["access_token"]
         payload = {
             "refresh_token": self._creds["refresh_token"],
             "client_id": self._creds["client_id"],
@@ -24,23 +29,26 @@ class Drive:
         # Parse the response
         assert response.status_code == 200
         response =  response.json()
-        self.access_token =response["access_token"]
-        self.expired = time.time() + response["expires_in"]
+        self._creds["access_token"] =response["access_token"]
+        self._creds["expires_in"] = time.time() + response["expires_in"]
+        self.drive_model.json = json.dumps(self._creds)
+        self.drive_model.save()
         return self.get_access_token()
     def upload_chunks(self,location,chunk,headers):
         self.session.put(location, headers=headers, data=chunk)
-    def ini_file(self,filename):
-        headers = {'Authorization': 'Bearer ' + self.get_access_token(),
+    def _get_headers(self):
+        return {'Authorization': 'Bearer ' + self.get_access_token(),
            'Content-Type': 'application/json'}
+    def ini_file(self,filename):
         parameters = {'name': filename,
                 'description': 'uploaded by machine.'}
-        r = requests.post('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable'
-                        , headers=headers, data=json.dumps(parameters))
+        r = self.session.post('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable'
+                        , headers=self._get_headers(), data=json.dumps(parameters))
         return r.headers['location']
 # Parse the response
 
-def get_num_chunks(url, max_chunks=8):
-    response = requests.head(url)
+def get_num_chunks(url,session, max_chunks=8):
+    response = session.head(url)
     accept_ranges = response.headers.get('Accept-Ranges')
     return 1
     if accept_ranges == 'bytes':
@@ -50,10 +58,10 @@ def get_num_chunks(url, max_chunks=8):
         # Server does not support partial content downloads
         return 1
 
-def download_chunk(url, start_byte, end_byte,file_size, chunk_number,location, drive_ob,progress_bar,Downloadingob):
+def download_chunk(url,session, start_byte, end_byte,file_size, chunk_number,location, drive_ob,progress_bar,Downloadingob):
     try:
         headers = {'Range': f'bytes={start_byte}-{end_byte}'}
-        response = requests.get(url, headers=headers, stream=True)
+        response = session.get(url, headers=headers, stream=True)
         chunk_size = 4980736  # 1 KB
         # chunk_size = 1024*1024*1  # 1 KB
 
@@ -81,8 +89,9 @@ def download_chunk(url, start_byte, end_byte,file_size, chunk_number,location, d
         Downloadingob.save()
 def download_file(url, max_chunks=8, output_file='downloaded_file.txt',Downloadingob=None):
     try:
-        num_chunks = get_num_chunks(url, max_chunks)
-        response = requests.head(url)
+        num_chunks = get_num_chunks(url,session, max_chunks)
+        session = requests.session()
+        response = session.head(url)
         file_size = int(response.headers['Content-Length'])
         chunk_size = file_size // num_chunks
         content_disposition = response.headers.get("Content-Disposition","")
@@ -92,7 +101,7 @@ def download_file(url, max_chunks=8, output_file='downloaded_file.txt',Downloadi
         else:
             filename = url.split("?")[0]
             filename = filename[filename.rfind("/")+1:]
-        drive_ob = Drive(Downloadingob.user.driveModel.json)
+        drive_ob = Drive(Downloadingob.user.driveModel)
         filename = filename[:-1000]
         location = drive_ob.ini_file(filename)
         Downloadingob.filename = filename
@@ -103,7 +112,7 @@ def download_file(url, max_chunks=8, output_file='downloaded_file.txt',Downloadi
         for i in range(num_chunks):
             start_byte = i * chunk_size
             end_byte = start_byte + chunk_size - 1 if i < num_chunks - 1 else file_size 
-            thread = threading.Thread(target=download_chunk, args=(url, start_byte, end_byte,file_size, i,location,drive_ob, total_progress,Downloadingob))
+            thread = threading.Thread(target=download_chunk, args=(url, session,start_byte, end_byte,file_size, i,location,drive_ob, total_progress,Downloadingob))
             threads.append(thread)
             thread.daemon = True
             thread.start()

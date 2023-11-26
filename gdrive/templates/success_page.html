@@ -6,6 +6,7 @@
 <body>
 
 <h1>Google Drive Files</h1>
+<h6>Available {{available}} GB</h6>
 <a href="{% url 'logout' %}">logout</a>
 <form action="{% url 'download' %}" method="post">
     {% csrf_token %}

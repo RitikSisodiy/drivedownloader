@@ -4,7 +4,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from django.conf import settings
 import threading
-from .utils import download_file
+from .utils import download_file,Drive
 from .models import driveModel,Downloading
 def get_drive_service(credentials):
     return build('drive', 'v2', credentials=credentials)
@@ -49,9 +49,10 @@ def success_page(request):
 
     # # Perform actions on the user's Google Drive (e.g., list files)
     # files = drive_service.files().list().execute()
+    drive = Drive(credentials_json)
     files = Downloading.objects.filter(user=request.user.id).values()
     print(files)
-    return render(request, 'success_page.html', {'files': files})
+    return render(request, 'success_page.html', {'files': files,"available":drive.get_availabe_space()})
  
 def startDownloading(request):
     if request.method =="POST":
