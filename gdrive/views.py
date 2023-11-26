@@ -10,7 +10,7 @@ def get_drive_service(credentials):
     return build('drive', 'v2', credentials=credentials)
 @login_required(login_url = "/login")
 def authenticate(request):
-    current_host =  request.is_secure() and "https://" or "http://" + request.get_host()
+    current_host =  ((request.is_secure() and "https://") or "http://") + request.get_host()
     # Use your own CLIENT_ID and CLIENT_SECRET obtained from the Google Cloud Console
     SCOPES = ['https://www.googleapis.com/auth/drive.file']
     flow = InstalledAppFlow.from_client_config(
@@ -24,8 +24,8 @@ def authenticate(request):
 
 @login_required(login_url = "/login")
 def auth_callback(request):
-    current_host =  request.is_secure() and "https://" or "http://" + request.get_host()
-    flow = InstalledAppFlow.from_client_secrets_file(
+    current_host =  ((request.is_secure() and "https://") or "http://") + request.get_host()
+    flow = InstalledAppFlow.from_client_config(
         settings.GDRIVE_CLIENT_SECRET_CONFIG,   # Path to your downloaded client_secrets.json
         scopes=['https://www.googleapis.com/auth/drive.file'],
         
@@ -34,9 +34,6 @@ def auth_callback(request):
 
     flow.fetch_token(authorization_response=request.build_absolute_uri())
     driveModel(user=request.user,json=flow.credentials.to_json()).save()
-    # Save the credentials to the session for later use
-    with open("userse.json","w") as f:
-        f.write(request.session['credentials'])
     return redirect('success_page')  # Redirect to a success page
 @login_required(login_url = "/login")
 def success_page(request):
@@ -92,7 +89,7 @@ def custom_login(request):
 
 def custom_logout(request):
     logout(request)
-    return redirect('home')  # Change 'home' to the name of your home view
+    return redirect('login')  # Change 'home' to the name of your home view
 def signup(request):
     if request.user.is_authenticated:
         return redirect("success_page")
