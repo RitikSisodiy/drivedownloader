@@ -13,8 +13,8 @@ class Drive:
     def get_availabe_space(self):
         url = "https://www.googleapis.com/drive/v3/about?fields=storageQuota"
         response = self.session.get(url,headers=self._get_headers())
-        available = response.json["storageQuota"]
-        return round((available["limit"] - available["usage"])/(1024 ** 3),2)
+        available = response.json()["storageQuota"]
+        return round((int(available["limit"]) - int(available["usage"]))/(1024 ** 3),2)
     def get_access_token(self):
         if self._creds.get("expires_in") and self._creds["expires_in"] > time.time():
             return self._creds["access_token"]
@@ -89,20 +89,20 @@ def download_chunk(url,session, start_byte, end_byte,file_size, chunk_number,loc
         Downloadingob.save()
 def download_file(url, max_chunks=8, output_file='downloaded_file.txt',Downloadingob=None):
     try:
-        num_chunks = get_num_chunks(url,session, max_chunks)
         session = requests.session()
+        num_chunks = get_num_chunks(url,session, max_chunks)
         response = session.head(url)
         file_size = int(response.headers['Content-Length'])
         chunk_size = file_size // num_chunks
         content_disposition = response.headers.get("Content-Disposition","")
         if "filename=" in content_disposition:
             fn_pattern = 'filename="(.*)"'
-            filename = re.findall(fn_pattern,content_disposition)
+            filename = re.findall(fn_pattern,content_disposition)[0]
         else:
             filename = url.split("?")[0]
             filename = filename[filename.rfind("/")+1:]
         drive_ob = Drive(Downloadingob.user.driveModel)
-        filename = filename[:-1000]
+        filename = filename[-1000:]
         location = drive_ob.ini_file(filename)
         Downloadingob.filename = filename
         Downloadingob.status = "in_progress"
