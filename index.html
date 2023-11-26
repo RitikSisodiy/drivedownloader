@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download Manager</title>
+  <!-- Add Bootstrap CSS link -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <style>
+    /* Add your custom styles here */
+    .google-drive-logo {
+      max-width: 30px;
+      max-height: 30px;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container mt-5">
+    <h2>Google Drive Download Manager</h2>
+
+    <table class="table mt-3">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">File Name</th>
+          <th scope="col">File URL</th>
+          <th scope="col">Progress</th>
+          <th scope="col">Status</th>
+        </tr>
+      </thead>
+      <tbody id="downloadTableBody">
+        <!-- Download items will be dynamically added here -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Add Bootstrap JS and Popper.js scripts (required for Bootstrap) -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+  <!-- Your custom JavaScript code -->
+  <script>
+    // Example data (replace this with actual data)
+    const downloads = [
+      { id: '1', fileName: 'File 1', fileURL: 'https://drive.google.com/file1', progress: 50, status: 'Downloading' },
+      { id: '2', fileName: 'File 2', fileURL: 'https://drive.google.com/file2', progress: 25, status: 'Pending' },
+      { id: '3', fileName: 'File 3', fileURL: 'https://drive.google.com/file3', progress: 75, status: 'Completed' },
+    ];
+
+    // Function to update the table with download information
+    function updateDownloadTable() {
+      const tableBody = document.getElementById('downloadTableBody');
+      tableBody.innerHTML = ''; // Clear existing content
+
+      downloads.forEach(download => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${download.id}</td>
+          <td>${download.fileName}</td>
+          <td><a href="${download.fileURL}" target="_blank">${download.fileURL}</a></td>
+          <td>
+            <div class="progress">
+              <div class="progress-bar" role="progressbar" style="width: ${download.progress}%" aria-valuenow="${download.progress}" aria-valuemin="0" aria-valuemax="100">${download.progress}%</div>
+            </div>
+          </td>
+          <td>${download.status}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    // Call the function to initially populate the table
+    updateDownloadTable();
+  </script>
+
+</body>
+</html>

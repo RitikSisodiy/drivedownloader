@@ -1,44 +1,92 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Google Drive Files</title>
-</head>
-<body>
 
-<h1>Google Drive Files</h1>
-<h6>Available {{available}} GB</h6>
-<a href="{% url 'logout' %}">logout</a>
-<form action="{% url 'download' %}" method="post">
+
+
+{% extends 'basic.html' %}
+
+
+{% block body %}
+<div class="container mt-5">
+   
+    <p>Available space {{available}} gb</p>
+    <form id="downloadForm" action="{% url 'download' %}" method="post">
     {% csrf_token %}
-    <input type="text" name="url" placeholder="enter url to download">
-    <input type="submit" value="download">
-</form>
-
-<table border="1">
-    <thead>
-        <tr>
-            {% for key, value in files.0.items %}
-                <th>{{ key }}</th>
-            {% endfor %}
-            <th>delete</th>
-
-        </tr>
-    </thead>
-    <tbody>
+    <div class="form-group">
+          <label for="fileUrl">File URL</label>
+          <input type="text" class="form-control" id="fileUrl" name="url" placeholder="Enter file URL" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Download</button><a href="{% url 'logout' %}" class="btn btn-danger m-2 "><i class="fas fa-sign-out-alt"></i> Logout</a>
+      </form>
+    <table class="table mt-3">
+      <thead>
+            <tr>
+                {% for key, value in files.0.items %}
+                    <th scope="col">{{ key|upper }}</th>
+                {% endfor %}
+                <th>delete</th>
+    
+            </tr>
+      </thead>
+      <tbody id="downloadTableBody">
         {% for my_dict in files %}
             <tr>
                 {% for key, value in my_dict.items %}
                     {% if value|slice:4 == "http" %}
-                    <td> <a href="{{ value }}">{{key}}</a> </td>
+                    <td> <a href="{{ value }}">{{value|slice:50}}</a> </td>
+                    {% elif key == 'progress' %}
+                    <td>
+                        <div class="progress">
+                          <div class="progress-bar" id="progress-{{my_dict.id}}" role="progressbar" style="width: {{value}}%" aria-valuenow="{{value}}" aria-valuemin="0" aria-valuemax="100">{{value}}</div>
+                        </div>
+                      </td>
                     {% else %}
-                    <td>{{ value }}</td>
+                    <td id="{{key}}-{{my_dict.id}}">{{ value }}</td>
                     {% endif %}
                 {% endfor %}
-                <th><a href="{% url 'delete' %}?id={{my_dict.id}}">delete</a></th>
+                <th><a class="btn-sm btn-danger " href="{% url 'delete' %}?id={{my_dict.id}}">delete</a></th>
 
             </tr>
         {% endfor %}
-    </tbody>
-</table>
-</body>
-</html>
+      </tbody>
+    </table>
+  </div>
+
+
+
+{% endblock %}
+
+{% block script %}
+<script>
+     const url = "ws://{{request.get_host}}/ws/downloads/"
+  
+  console.log("False")
+    const ws = new WebSocket(url)
+    const messageDiv = document.getElementById("showmessages")
+    const online = document.getElementById("onlineuser")
+    ws.onopen = function(event){
+        console.log("connetion is opend")
+        console.log(event);
+    }
+    ws.onmessage = function(event){
+        var data = JSON.parse(event.data)
+        if (data.progress != null){
+            progress_bar = document.getElementById("progress-"+data.id)
+            progress_bar.style.width = data.progress + "%"
+            progress_bar.innerHTML = data.progress
+            progress_bar.setAttribute("aria-valuenow", data.progress)
+        }
+        if (data.status != null){
+            status_bar = document.getElementById("status-"+data.id)
+            status_bar.innerHTML = data.status
+        }
+        if (data.filename != null){
+            filename = document.getElementById("filename-"+data.id)
+            filename.innerHTML = data.filename
+        }
+    }
+    ws.onclose = function(event){
+      socket=false
+        console.log("connetion is closed")
+        // getsms()
+    }
+</script>
+{% endblock %}

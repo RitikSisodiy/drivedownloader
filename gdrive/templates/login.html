@@ -1,6 +1,48 @@
-<form method="post" action="{% url 'login' %}">
+{% extends 'basic.html' %}
+{% block body %}
+<div class="container">
+   
+
+    <div class="row">
+      <div class="col-md-6 form-container">
+        <h2>Login</h2>
+        <form method="post" action="{% url 'login' %}">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Login</button>
-    <a href="{% url 'signup' %}">signup</a>
-</form>
+    <div class="form-group">
+            <label for="loginEmail">Username</label>
+            <input type="text" class="form-control" id="loginEmail" name="username" aria-describedby="emailHelp" placeholder="Enter email">
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input type="password" class="form-control" name="password" id="loginPassword" placeholder="Password">
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+          
+        </form>
+      </div>
+
+      <div class="col-md-6 form-container">
+        <h2>Sign Up</h2>
+    {% csrf_token %}
+        <form method="post" action="{% url 'signup' %}">
+    {% csrf_token %}
+    <div class="form-group">
+            <label for="signupName">Username</label>
+            <input type="text" name="username" class="form-control" id="signupName" placeholder="Enter your username">
+          </div>
+         
+          <div class="form-group">
+            <label for="signupPassword">Password</label>
+            <input type="password" name="password1" class="form-control" id="signupPassword" placeholder="Password">
+          </div>
+
+          <div class="form-group">
+            <label for="signupPassword2">Confirm Password</label>
+            <input type="password" name="password2" class="form-control" id="signupPassword2" placeholder="Password">
+          </div>
+          <button type="submit" class="btn btn-success">Sign Up</button>
+        </form>
+      </div>
+    </div>
+</div>
+{% endblock %}

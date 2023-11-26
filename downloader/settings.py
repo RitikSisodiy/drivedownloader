@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'gdrive'
+    'gdrive',
+    'channels'
 ]
 
 MIDDLEWARE = [
@@ -90,8 +91,15 @@ TEMPLATES = [
         },
     },
 ]
-
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer'
+    }
+}
 WSGI_APPLICATION = 'downloader.wsgi.application'
+# ************************************ #
+# ADDED
+ASGI_APPLICATION = 'downloader.routing.application'
 
 
 # Database

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Drive Download Manager</title>
+  <!-- Add Bootstrap CSS link -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <style>
+    /* Add your custom styles here */
+    body {
+      background-color: #f8f9fa;
+    }
+
+    .form-container {
+      max-width: 400px;
+      margin: auto;
+      margin-top: 50px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .service-description {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .brand-logo {
+      max-width: 80px;
+      margin-bottom: 20px;
+    }
+
+    .btn-google {
+      background-color: #4285f4;
+      color: #fff;
+      border: 1px solid #4285f4;
+    }
+  </style>
+</head>
+<body>
+    <div class="service-description">
+        <img src="https://mailmeteor.com/logos/assets/PNG/Google_Drive_Logo_512px.png" alt="Brand Logo" class="brand-logo">
+        <h1>Welcome to the Google Drive Download Manager!</h1>
+        <p>Effortlessly manage and monitor your downloads from Google Drive with our user-friendly download manager. Enjoy the convenience of tracking your download progress and accessing your files seamlessly.</p>
+      </div>
+  {% block body %}
+  {% endblock %}
+  <!-- Add Bootstrap JS and Popper.js scripts (required for Bootstrap) -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+
+</body>
+{% block script %}
+{% endblock %}
+
+</html>
