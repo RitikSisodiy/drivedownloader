@@ -10,13 +10,12 @@ def get_drive_service(credentials):
     return build('drive', 'v2', credentials=credentials)
 @login_required(login_url = "/login")
 def authenticate(request):
+    current_host =  request.is_secure() and "https://" or "http://" + request.get_host()
     # Use your own CLIENT_ID and CLIENT_SECRET obtained from the Google Cloud Console
     SCOPES = ['https://www.googleapis.com/auth/drive.file']
-
-    flow = InstalledAppFlow.from_client_secrets_file(
-        settings.GDRIVE_CLIENT_SECRET,  # Path to your downloaded client_secrets.json
-        scopes=SCOPES,
-        redirect_uri='https://localhost:8000/auth/google_drive/callback'  # Update with your redirect URI
+    flow = InstalledAppFlow.from_client_config(
+        settings.GDRIVE_CLIENT_SECRET_CONFIG,  # Path to your downloaded client_secrets.json
+        scopes=SCOPES,redirect_uri=f'{current_host}/auth/google_drive/callback' 
     )
 
     auth_url, _ = flow.authorization_url(prompt='consent')
@@ -27,10 +26,10 @@ def authenticate(request):
 def auth_callback(request):
     current_host =  request.is_secure() and "https://" or "http://" + request.get_host()
     flow = InstalledAppFlow.from_client_secrets_file(
-        settings.GDRIVE_CLIENT_SECRET,   # Path to your downloaded client_secrets.json
+        settings.GDRIVE_CLIENT_SECRET_CONFIG,   # Path to your downloaded client_secrets.json
         scopes=['https://www.googleapis.com/auth/drive.file'],
         
-        redirect_uri=f'{current_host}/auth/google_drive/callback'  # Update with your redirect URI
+        redirect_uri=f'{current_host}/auth/google_drive/callback'
     )
 
     flow.fetch_token(authorization_response=request.build_absolute_uri())
