@@ -67,7 +67,7 @@ GDRIVE_CLIENT_SECRET_CONFIG = {
         ]
     }
 }
-
+USE_X_FORWARDED_HOST = True
 # settings.py
 
 # Update the URLs to use HTTPS
