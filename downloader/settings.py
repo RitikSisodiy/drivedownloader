@@ -64,7 +64,8 @@ GDRIVE_CLIENT_SECRET_CONFIG = {
         "redirect_uris": [
             "http://localhost:8000/auth/google_drive/callback",
             "https://localhost:8000/auth/google_drive/callback",
-            "https://drivedownloader.onrender.com/auth/google_drive/callback"
+            "https://drivedownloader.onrender.com/auth/google_drive/callback",
+            "https://drivedownloaderui.onrender.com/auth/google_drive/callback"
         ]
     }
 }
