@@ -10,3 +10,4 @@ googleapis-common-protos
 gunicorn
 psycopg2-binary
 channels==3.0.4
+gevent
