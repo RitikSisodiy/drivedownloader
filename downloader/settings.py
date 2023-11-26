@@ -101,7 +101,7 @@ CHANNEL_LAYERS = {
 WSGI_APPLICATION = 'downloader.wsgi.application'
 # ************************************ #
 # ADDED
-ASGI_APPLICATION = 'downloader.routing.application'
+ASGI_APPLICATION = 'downloader.asgi.application'
 
 
 # Database
