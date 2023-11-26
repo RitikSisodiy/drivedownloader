@@ -15,4 +15,5 @@ class GdriveConfig(AppConfig):
     name = 'gdrive'
     def ready(self):
         thread = threading.Thread(target=callService, args=())
+        thread.daemon=True
         thread.start()
