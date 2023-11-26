@@ -59,7 +59,6 @@ def startDownloading(request):
         Downloadingob = Downloading(url=url,user=request.user,progress="0")
         Downloadingob.save()
         thread=threading.Thread(target=download_file, args=(url,8,"",Downloadingob))
-        thread.daemon=True
         thread.start()
         return redirect("success_page")
     pass

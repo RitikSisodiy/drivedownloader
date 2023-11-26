@@ -11,3 +11,4 @@ class Downloading(models.Model):
     url = models.TextField()
     filename = models.CharField(blank=True, max_length=1000)
     progress = models.CharField(max_length=100)
+    status = models.CharField(max_length=100,blank=True)

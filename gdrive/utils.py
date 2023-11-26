@@ -3,7 +3,7 @@ import threading
 import json
 from tqdm import tqdm
 import time
-
+import re
 class Drive:
     def __init__(self,creds) -> None:
         self._creds = json.loads(creds)
@@ -51,57 +51,73 @@ def get_num_chunks(url, max_chunks=8):
         return 1
 
 def download_chunk(url, start_byte, end_byte,file_size, chunk_number,location, drive_ob,progress_bar,Downloadingob):
-    headers = {'Range': f'bytes={start_byte}-{end_byte}'}
-    response = requests.get(url, headers=headers, stream=True)
-    chunk_size = 4980736  # 1 KB
-    # chunk_size = 1024*1024*1  # 1 KB
+    try:
+        headers = {'Range': f'bytes={start_byte}-{end_byte}'}
+        response = requests.get(url, headers=headers, stream=True)
+        chunk_size = 4980736  # 1 KB
+        # chunk_size = 1024*1024*1  # 1 KB
 
-    for data in response.iter_content(chunk_size=chunk_size):
-        csize =  len(data)
-        sbyte = start_byte
-        ebyte = start_byte +csize-1
-        headers =  {'Content-Length': str(csize),
-        'Content-Range': 'bytes ' +str(sbyte) \
-        + '-' + str(ebyte) + '/' + str(file_size)}
-        drive_ob.upload_chunks(location,data,headers)
-        # file.write(data)
-        start_byte += csize
-        progress_bar.update(len(data))
-        Downloadingob.progress = str(progress_bar.n/progress_bar.total*100)[:5]
+        for data in response.iter_content(chunk_size=chunk_size):
+            csize =  len(data)
+            sbyte = start_byte
+            ebyte = start_byte +csize-1
+            headers =  {'Content-Length': str(csize),
+            'Content-Range': 'bytes ' +str(sbyte) \
+            + '-' + str(ebyte) + '/' + str(file_size)}
+            drive_ob.upload_chunks(location,data,headers)
+            # file.write(data)
+            start_byte += csize
+            progress_bar.update(len(data))
+            try:
+                Downloadingob.progress = str(progress_bar.n/progress_bar.total*100)[:5]
+                Downloadingob.save()
+            except:
+                pass
+            # break
+        progress_bar.set_postfix(chunk=chunk_number)
+        print(f"Chunk {chunk_number} downloaded.")
+    except Exception as e:
+        Downloadingob.status = f"failed {e}"
         Downloadingob.save()
-        # break
-    progress_bar.set_postfix(chunk=chunk_number)
-    print(f"Chunk {chunk_number} downloaded.")
-
 def download_file(url, max_chunks=8, output_file='downloaded_file.txt',Downloadingob=None):
-    num_chunks = get_num_chunks(url, max_chunks)
-    response = requests.head(url)
-    file_size = int(response.headers['Content-Length'])
-    chunk_size = file_size // num_chunks
+    try:
+        num_chunks = get_num_chunks(url, max_chunks)
+        response = requests.head(url)
+        file_size = int(response.headers['Content-Length'])
+        chunk_size = file_size // num_chunks
+        content_disposition = response.headers.get("Content-Disposition","")
+        if "filename=" in content_disposition:
+            fn_pattern = 'filename="(.*)"'
+            filename = re.findall(fn_pattern,content_disposition)
+        else:
+            filename = url.split("?")[0]
+            filename = filename[filename.rfind("/")+1:]
+        drive_ob = Drive(Downloadingob.user.driveModel.json)
+        filename = filename[:-1000]
+        location = drive_ob.ini_file(filename)
+        Downloadingob.filename = filename
+        Downloadingob.status = "in_progress"
+        threads = []
+        total_progress = tqdm(total=file_size, unit='B', unit_scale=True, desc='Downloading', position=0, leave=True)
 
-    drive_ob = Drive(Downloadingob.user.driveModel.json)
-    filename = url.split("?")[0]
-    filename = filename[filename.rfind("/")+1:]
-    location = drive_ob.ini_file(filename)
-    Downloadingob.filename = filename
-    Downloadingob.save()
-    threads = []
-    total_progress = tqdm(total=file_size, unit='B', unit_scale=True, desc='Downloading', position=0, leave=True)
+        for i in range(num_chunks):
+            start_byte = i * chunk_size
+            end_byte = start_byte + chunk_size - 1 if i < num_chunks - 1 else file_size 
+            thread = threading.Thread(target=download_chunk, args=(url, start_byte, end_byte,file_size, i,location,drive_ob, total_progress,Downloadingob))
+            threads.append(thread)
+            thread.daemon = True
+            thread.start()
 
-    for i in range(num_chunks):
-        start_byte = i * chunk_size
-        end_byte = start_byte + chunk_size - 1 if i < num_chunks - 1 else file_size 
-        thread = threading.Thread(target=download_chunk, args=(url, start_byte, end_byte,file_size, i,location,drive_ob, total_progress,Downloadingob))
-        threads.append(thread)
-        thread.daemon = True
-        thread.start()
+        for thread in threads:
+            thread.join()
 
-    for thread in threads:
-        thread.join()
-
-    total_progress.close()
-    print("Download complete.")
-
+        total_progress.close()
+        Downloadingob.status = "downloaded"
+        Downloadingob.save()
+        print("Download complete.")
+    except Exception as e:
+        Downloadingob.status = f"failed {e}"
+        Downloadingob.save()
 # if __name__ == "__main__":
 #     file_url = "https://example.com/example_file.zip"
 #     download_file(file_url)
