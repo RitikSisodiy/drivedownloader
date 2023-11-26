@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Drive Files</title>
+</head>
+<body>
+
+<h1>Google Drive Files</h1>
+<form action="{% url 'download' %}" method="post">
+    {% csrf_token %}
+    <input type="text" name="url" placeholder="enter url to download">
+    <input type="submit" value="download">
+</form>
+
+<table border="1">
+    <thead>
+        <tr>
+            {% for key, value in files.0.items %}
+                <th>{{ key }}</th>
+            {% endfor %}
+            <th>delete</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        {% for my_dict in files %}
+            <tr>
+                {% for key, value in my_dict.items %}
+                    {% if value|slice:4 == "http" %}
+                    <td> <a href="{{ value }}">{{key}}</a> </td>
+                    {% else %}
+                    <td>{{ value }}</td>
+                    {% endif %}
+                {% endfor %}
+                <th><a href="{% url 'delete' %}?id={{my_dict.id}}">delete</a></th>
+
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>
