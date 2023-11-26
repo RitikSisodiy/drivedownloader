@@ -56,7 +56,7 @@
 
 {% block script %}
 <script>
-     const url = "ws://{{request.get_host}}/ws/downloads/"
+     const url = "{% if request.is_secure %}wss{% else %}{% endif %}://{{request.get_host}}/ws/downloads/"
   
   console.log("False")
     const ws = new WebSocket(url)
