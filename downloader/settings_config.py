@@ -11,6 +11,10 @@ configuration = {
                 'ENGINE': 'django.db.backends.sqlite3',
                 'NAME': BASE_DIR / 'db.sqlite3',
             }
+        },
+        "KEEP-UP":{
+            "URL":"https://drivedownloaderui.onrender.com/login/",
+            "SLEEP-INTERVAL": 10
         }
     },
     "PROD":{
@@ -24,6 +28,10 @@ configuration = {
                 'HOST': 'dpg-clheqq6bbf9s73b0tang-a',  # Set to your PostgreSQL server's host if not on the local machine
                 'PORT': '5432',      # Default PostgreSQL port
             }
+        },
+        "KEEP-UP":{
+            "URL":"https://drivedownloader.onrender.com/login/",
+            "SLEEP-INTERVAL": 10
         }
     }
 }

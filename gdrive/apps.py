@@ -1,13 +1,14 @@
 from django.apps import AppConfig
 import threading,time
 import requests
+from django.conf import settings
 def callService():
-    url = "https://drivedownloaderui.onrender.com/login/"
+    url = settings.configuration["KEEP-UP"]["URL"]
     headers = {
         "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
     }
     requests.get(url,headers=headers)
-    time.sleep(20)
+    time.sleep(settings.configuration["KEEP-UP"]["SLEEP-INTERVAL"])
     callService()
 
 class GdriveConfig(AppConfig):
