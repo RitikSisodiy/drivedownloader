@@ -11,4 +11,6 @@ gunicorn
 psycopg2-binary
 channels==3.0.4
 gevent
-uvicorn
+uvicorn[standard]
+websockets
+wsproto
