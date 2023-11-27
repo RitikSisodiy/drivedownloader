@@ -146,8 +146,8 @@ def send_by_download_ob(Downloadingob):
         "filename":Downloadingob.filename,
         "status":Downloadingob.status}
     )
+channel_layer = get_channel_layer()
 def sent_to_socket(user,message):
-    channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         str(user.id),
         {
