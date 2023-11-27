@@ -34,7 +34,4 @@ class downloadClassConsumer(SyncConsumer):
             }
         )
     def websocket_disconnect(self,event):
-        print("event is disconnected")
         async_to_sync(self.channel_layer.group_discard)(self.room_name,self.channel_name)
-        print(f'[{self.channel_name}] you are disconnected')
-        print(event)
