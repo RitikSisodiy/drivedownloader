@@ -79,7 +79,7 @@ def download_chunk(url,session, start_byte, end_byte,file_size, chunk_number,loc
             try:
                 Downloadingob.progress = str(progress_bar.n/progress_bar.total*100)[:5]
                 Downloadingob.save()
-                sent_to_socket(Downloadingob.user,{"id":Downloadingob.id,"progress":Downloadingob.progress})
+                send_by_download_ob(Downloadingob)
             except:
                 pass
             # break
@@ -88,7 +88,7 @@ def download_chunk(url,session, start_byte, end_byte,file_size, chunk_number,loc
     except Exception as e:
         Downloadingob.status = f"failed {e}"
         Downloadingob.save()
-        sent_to_socket(Downloadingob.user,{"id":Downloadingob.id,"status":Downloadingob.status})
+        send_by_download_ob(Downloadingob)
 def download_file(url, max_chunks=8, output_file='downloaded_file.txt',Downloadingob=None):
     try:
         session = requests.session()
@@ -108,7 +108,7 @@ def download_file(url, max_chunks=8, output_file='downloaded_file.txt',Downloadi
         location = drive_ob.ini_file(filename)
         Downloadingob.filename = filename
         Downloadingob.status = "in_progress"
-        sent_to_socket(Downloadingob.user,{"id":Downloadingob.id,"filename":Downloadingob.filename,"status":Downloadingob.status})
+        send_by_download_ob(Downloadingob)
         threads = []
         total_progress = tqdm(total=file_size, unit='B', unit_scale=True, desc='Downloading', position=0, leave=True)
 
@@ -125,19 +125,27 @@ def download_file(url, max_chunks=8, output_file='downloaded_file.txt',Downloadi
 
         total_progress.close()
         Downloadingob.status = "downloaded"
-        sent_to_socket(Downloadingob.user,{"id":Downloadingob.id,"status":Downloadingob.status})
         Downloadingob.save()
+        send_by_download_ob(Downloadingob)
         print("Download complete.")
     except Exception as e:
         Downloadingob.status = f"failed {e}"
         Downloadingob.save()
-        sent_to_socket(Downloadingob.user,{"id":Downloadingob.id,"status":Downloadingob.status})
+        send_by_download_ob(Downloadingob)
 # if __name__ == "__main__":
 #     file_url = "https://example.com/example_file.zip"
 #     download_file(file_url)
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+
+def send_by_download_ob(Downloadingob):
+    sent_to_socket(Downloadingob.user,{
+        "id":Downloadingob.id,
+        "progress":Downloadingob.progress,
+        "filename":Downloadingob.filename,
+        "status":Downloadingob.status}
+    )
 def sent_to_socket(user,message):
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
