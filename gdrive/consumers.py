@@ -6,7 +6,7 @@ from channels.consumer import SyncConsumer
 class downloadClassConsumer(SyncConsumer):
     def websocket_connect(self,event):
         user = self.scope["user"]
-        self.room_name = user.username
+        self.room_name = str(user.id)
         self.send({
             'type':'websocket.accept'
         })

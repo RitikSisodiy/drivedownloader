@@ -149,7 +149,7 @@ def send_by_download_ob(Downloadingob):
 def sent_to_socket(user,message):
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
-        user.username,
+        str(user.id),
         {
             'type': 'websocket.message',
             'text': json.dumps(message)
