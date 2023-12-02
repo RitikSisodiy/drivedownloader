@@ -16,6 +16,9 @@ class GdriveConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'gdrive'
     def ready(self):
+        thread = threading.Thread(target=callService, args=())
+        thread.daemon=True
+        thread.start()
         from django.contrib.auth.models import User
         if not User.objects.filter(username='root').exists():
             User.objects.create_superuser('root', 'root@example.com', 'root')
