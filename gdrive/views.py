@@ -118,5 +118,6 @@ def test_and_resume(request):
         if dob.id in ThreadTrack.threads:
             continue
         dob.resume()
+        ThreadTrack.threads.add(dob.id)
         downloadHistory(file=dob).save()
     return HttpResponse("")
