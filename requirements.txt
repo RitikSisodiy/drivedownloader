@@ -14,3 +14,4 @@ gevent
 uvicorn[standard]
 websockets
 wsproto
+whitenoise[brotli]
