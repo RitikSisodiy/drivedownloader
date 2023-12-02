@@ -1,0 +1,2 @@
+class ThreadTrack:
+    threads = set()

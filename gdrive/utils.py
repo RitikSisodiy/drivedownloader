@@ -4,6 +4,8 @@ import json
 from tqdm import tqdm
 import time
 import re
+from .tread_track import ThreadTrack
+
 class Drive:
     def __init__(self,drive_model) -> None:
         self.drive_model = drive_model
@@ -46,7 +48,17 @@ class Drive:
                         , headers=self._get_headers(), data=json.dumps(parameters))
         return r.headers['location']
 # Parse the response
-
+def resume_download(downloading_ob):
+    start_byte, end_byte = downloading_ob.downloaded_thread.split(",")
+    start_byte, end_byte = int(start_byte),int(end_byte)
+    location = downloading_ob.location
+    file_size = int(downloading_ob.size)
+    url = downloading_ob.url
+    drive_ob = Drive(downloading_ob.user.driveModel)
+    total_progress = tqdm(total=file_size, unit='B', unit_scale=True, desc='Downloading', position=0, leave=True)
+    total_progress.update(int(start_byte))
+    session = requests.Session()
+    download_chunk(url, session,start_byte, end_byte,file_size, 1,location,drive_ob, total_progress,downloading_ob)
 def get_num_chunks(url,session, max_chunks=8):
     response = session.head(url)
     accept_ranges = response.headers.get('Accept-Ranges')
@@ -75,6 +87,7 @@ def download_chunk(url,session, start_byte, end_byte,file_size, chunk_number,loc
             drive_ob.upload_chunks(location,data,headers)
             # file.write(data)
             start_byte += csize
+            Downloadingob.downloaded_thread = f"{start_byte},{end_byte}"
             progress_bar.update(len(data))
             try:
                 Downloadingob.progress = str(progress_bar.n/progress_bar.total*100)[:5]
@@ -89,6 +102,7 @@ def download_chunk(url,session, start_byte, end_byte,file_size, chunk_number,loc
         Downloadingob.status = f"failed {e}"
         Downloadingob.save()
         send_by_download_ob(Downloadingob)
+
 def download_file(url, max_chunks=8, output_file='downloaded_file.txt',Downloadingob=None):
     try:
         session = requests.session()
@@ -108,6 +122,8 @@ def download_file(url, max_chunks=8, output_file='downloaded_file.txt',Downloadi
         location = drive_ob.ini_file(filename)
         Downloadingob.filename = filename
         Downloadingob.status = "in_progress"
+        Downloadingob.location = location
+        Downloadingob.size = file_size
         send_by_download_ob(Downloadingob)
         threads = []
         total_progress = tqdm(total=file_size, unit='B', unit_scale=True, desc='Downloading', position=0, leave=True)
@@ -117,6 +133,7 @@ def download_file(url, max_chunks=8, output_file='downloaded_file.txt',Downloadi
             end_byte = start_byte + chunk_size - 1 if i < num_chunks - 1 else file_size 
             thread = threading.Thread(target=download_chunk, args=(url, session,start_byte, end_byte,file_size, i,location,drive_ob, total_progress,Downloadingob))
             threads.append(thread)
+            thread.daemon = True
             thread.start()
 
         for thread in threads:
@@ -126,6 +143,7 @@ def download_file(url, max_chunks=8, output_file='downloaded_file.txt',Downloadi
         Downloadingob.status = "downloaded"
         Downloadingob.save()
         send_by_download_ob(Downloadingob)
+        ThreadTrack.threads.remove(Downloadingob.id)
         print("Download complete.")
     except Exception as e:
         Downloadingob.status = f"failed {e}"

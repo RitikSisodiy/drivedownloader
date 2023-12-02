@@ -5,7 +5,10 @@ from googleapiclient.discovery import build
 from django.conf import settings
 import threading
 from .utils import download_file,Drive
-from .models import driveModel,Downloading
+from .models import driveModel,Downloading,downloadHistory
+from .tread_track import ThreadTrack
+from django.http import HttpResponse
+
 def get_drive_service(credentials):
     return build('drive', 'v2', credentials=credentials)
 @login_required(login_url = "/login")
@@ -60,7 +63,9 @@ def startDownloading(request):
         Downloadingob = Downloading(url=url,user=request.user,progress="0")
         Downloadingob.save()
         thread=threading.Thread(target=download_file, args=(url,8,"",Downloadingob))
+        thread.daemon = True
         thread.start()
+        ThreadTrack.threads.add(Downloadingob.id)
         return redirect("success_page")
     pass
 def deleteDownloading(request):
@@ -102,3 +107,13 @@ def signup(request):
     else:
         form = UserCreationForm()
     return render(request, 'signup.html', {'form': form})
+def test_and_resume(request):
+    in_progress = Downloading.objects.filter(status="in_progress")
+    if in_progress.count() == len(ThreadTrack.threads):
+        return HttpResponse("")
+    for dob in in_progress:
+        if dob.id in ThreadTrack.threads:
+            continue
+        dob.resume()
+        downloadHistory(file=dob).save()
+    return HttpResponse("")

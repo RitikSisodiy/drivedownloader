@@ -11,6 +11,7 @@ urlpatterns = [
     path('signup/', views.signup, name='signup'),
     path('download/', views.startDownloading, name='download'),
     path('delete/', views.deleteDownloading, name='delete'),
+    path('heathcheck/', views.test_and_resume, name='heathcheck'),
     # Add other URLs as needed
 ]
 
