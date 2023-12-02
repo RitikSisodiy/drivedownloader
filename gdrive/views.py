@@ -53,7 +53,10 @@ def success_page(request):
     # # Perform actions on the user's Google Drive (e.g., list files)
     # files = drive_service.files().list().execute()
     drive = Drive(credentials_json)
-    files = Downloading.objects.filter(user=request.user.id).values()
+    show_fields = [
+        "id","url","filename","progress","status"
+    ]
+    files = Downloading.objects.filter(user=request.user.id).values(*show_fields)
     print(files)
     return render(request, 'success_page.html', {'files': files,"available":drive.get_availabe_space()})
  
