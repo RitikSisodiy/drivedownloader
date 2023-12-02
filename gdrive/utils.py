@@ -117,7 +117,6 @@ def download_file(url, max_chunks=8, output_file='downloaded_file.txt',Downloadi
             end_byte = start_byte + chunk_size - 1 if i < num_chunks - 1 else file_size 
             thread = threading.Thread(target=download_chunk, args=(url, session,start_byte, end_byte,file_size, i,location,drive_ob, total_progress,Downloadingob))
             threads.append(thread)
-            thread.daemon = True
             thread.start()
 
         for thread in threads:
